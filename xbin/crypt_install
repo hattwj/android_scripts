@@ -1,0 +1,71 @@
+#!/system/xbin/bash
+
+source crypt_env
+
+# get size of block device in byted
+BYTECOUNT=`blockdev --getsize64 $BLOCK_PATH`
+KBCOUNT=$((BYTECOUNT / 10**3))
+MBCOUNT=$((BYTECOUNT / 10**6))
+GBCOUNT=$((BYTECOUNT / 10**9))
+
+# bail if bin missing
+if [ ! -f `which $CRYPTBIN` ]; then
+  echo $CRYPTBIN not found!
+  exit
+fi
+
+echo 
+echo WARNING: THIS COMMAND WILL WIPE ALL DATA ON BLOCK 
+echo DEVICE $BLOCK_PATH
+echo This device has...
+echo Bytes: $BYTECOUNT
+echo KiloBytes: $KBCOUNT
+echo MegaBytes: $MBCOUNT
+echo GigaBytes: $GBCOUNT
+echo 
+echo The size listed above SHOULD be the same size 
+echo as your external sd card. IF IT IS NOT YOU SHOULD
+echo NOT CONTINUE, IT COULD BRICK YOUR DEVICE.
+echo
+echo 'Edit "crypt_env" to change targeted block device'
+echo 
+read -r -p "Type 'YES' in all caps to continue... " response
+
+if [[ $response != "YES" ]]; then
+  echo 'You did not say "YES"'
+  exit
+fi
+
+echo
+echo "WARNING: Randomization can take a LONG time"
+echo '   Estimated (/dev/urandom) fast speed: 1.989MB/s'
+echo '   Estimated time:' $((MBCOUNT / 114)) min
+echo 
+echo '   Estimated (/dev/random) slow speed: 0.545MB/s'
+echo '   Estimated time:' $((MBCOUNT / 32)) min
+echo
+echo
+echo 'Would you like to randomize the device? (y/n) '
+read response
+if [[ $response == "y" ]]; then
+  read -r -p 'Use slow randomization method? (y/n) ' response
+  if [[ $response == 'y' ]]; then
+    RANDOMIZER=/dev/random
+    DDBS=512KB
+  else
+    # experimentally determined that bs=1024KB is fastest 
+    # for my device
+    # oddly enough bs=1M is SUPER slow
+    RANDOMIZER=/dev/urandom
+    DDBS=1024KB
+  fi
+
+  dd if=$RANDOMIZER of=$BLOCK_PATH bs=$DDBS 
+  echo Randomization complete!
+fi
+
+echo Luks formatting $BLOCK_PATH
+# format block device
+$CRYPTBIN luksFormat $BLOCK_PATH
+
+echo "\nCrypt Install complete. Run crypt_up to access device \n"

@@ -1,0 +1,4 @@
+FILE=/sdcard/userinit.log
+echo iranuserinit `date` > $FILE
+setenforce 0 >> $FILE
+sh /system/xbin/loa_bootscript.sh /sdcard/ubuntu/ubuntu.img >> $FILE

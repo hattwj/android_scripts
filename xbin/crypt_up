@@ -1,0 +1,23 @@
+#!/system/xbin/bash
+
+source crypt_env
+
+# open block device - unencrypted
+lm.cryptsetup luksOpen $BLOCK_PATH $UBLOCK_ID
+
+if [ ! -d "$MNT_PATH" ]; then
+  echo Creating $MNT_PATH
+  mkdir $MNT_PATH
+fi
+
+HAS_PART=`blkid | grep $UBLOCK_PATH | wc -l`
+if [ $HAS_PART -eq 0 ]; then
+  # format unencrypted as ext4
+  mke2fs -F -t ext4 $UBLOCK_PATH
+else
+  echo 'Already partitioned, proceeding...'
+fi
+
+# mount
+echo Mounting $UBLOCK_PATH AT $MNT_PATH
+mount -t ext4 -o rw $UBLOCK_PATH $MNT_PATH

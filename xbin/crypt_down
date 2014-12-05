@@ -1,0 +1,9 @@
+#!/system/xbin/bash
+
+source crypt_env
+MOUNTED=`mount | grep $UBLOCK_PATH|wc -l`
+if [ $MOUNTED -eq 0 ]; then
+  exit
+fi
+umount $MNT_PATH
+lm.cryptsetup luksClose $UBLOCK_PATH $MNT_PATH

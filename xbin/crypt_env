@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+CRYPTBIN=lm.cryptsetup
+BLOCK_ID=mmcblk1p1
+UBLOCK_ID=luks_external_sd
+BLOCK_PATH=/dev/block/$BLOCK_ID
+UBLOCK_PATH=/dev/mapper/$UBLOCK_ID
+MNT_PATH=/external_sd
